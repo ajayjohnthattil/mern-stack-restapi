@@ -1,10 +1,13 @@
 const asyncHandler = require('express-async-handler')
+
+const task = require('../model/taskModel')
 // desc - get all tasks
 // route - GET/api/tasks
 // access - private
 
 const getTasks = asyncHandler(async (req,res)=> {
-    res.status(200).json({message: 'Get Tasks'})
+    const tasks = await task.find()
+    res.status(200).json(tasks)
 })
 
 // desc - set new task
@@ -16,7 +19,11 @@ const setTask = asyncHandler(async (req,res)=> {
         res.status(400)
         throw new Error('please add a body.text field');
     }
-    res.status(200).json({message: 'Set Tasks'})
+
+    const tasks = await task.create({
+        text: req.body.text
+    }) 
+    res.status(200).json(tasks)
 })
 
 // desc - update task
@@ -24,7 +31,15 @@ const setTask = asyncHandler(async (req,res)=> {
 // access - private
 
 const updateTask = asyncHandler(async (req,res)=> {
-    res.status(200).json({message: `Update tasks ${req.params.id}`})
+
+    const tasks = await task.findById(req.params.id)
+
+    if(!tasks){
+        res.status(400)
+        throw new Error('task nor found')
+    }
+    const updatedTask = await task.findByIdAndUpdate(req.params.id,req.body,{new:true,})
+    res.status(200).json(updatedTask)
 })
 
 // desc - delete task
@@ -32,7 +47,14 @@ const updateTask = asyncHandler(async (req,res)=> {
 // access - private
 
 const deleteTask = asyncHandler(async (req,res)=> {
-    res.status(200).json({message: `Delete tasks ${req.params.id}`})
+    const tasks = await task.findById(req.params.id)
+
+    if(!tasks){
+        res.status(400)
+        throw new Error('task not found')
+    }
+    await tasks.remove()
+    res.status(200).json({id: req.params.id})
 })
  
 
